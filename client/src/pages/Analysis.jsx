@@ -15,7 +15,7 @@ export default function Analysis({ user }) {
       return;
     }
 
-    fetch(`/api/student/data?userId=${user.id}`)
+    fetch(`/api/student/data?userId=${user._id}`)
       .then(res => res.json())
       .then(setData)
       .catch(err => console.error("Fetch error:", err))

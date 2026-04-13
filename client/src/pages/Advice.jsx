@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -8,12 +8,71 @@ import {
   BookOpen,
   Brain,
   Coffee,
+  Loader2,
 } from "lucide-react";
+
+const ICON_MAP = {
+  Brain: <Brain className="w-8 h-8 text-indigo-600" />,
+  BookOpen: <BookOpen className="w-8 h-8 text-emerald-600" />,
+  Coffee: <Coffee className="w-8 h-8 text-amber-600" />,
+};
 
 export default function Advice({ user }) {
   const navigate = useNavigate();
+  const [adviceData, setAdviceData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
- 
+  useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    fetch(`/api/advice?userId=${user._id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setAdviceData(data);
+        }
+      })
+      .catch((err) => console.error("Advice fetch error:", err))
+      .finally(() => setLoading(false));
+  }, [user, navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+      </div>
+    );
+  }
+
+  const cards = adviceData?.adviceCards || [
+    {
+      icon: "Brain",
+      title: "Cognitive Optimization",
+      advice: "Sleep 7–8 hours daily to improve memory and retention.",
+      type: "success",
+    },
+    {
+      icon: "BookOpen",
+      title: "Study Technique",
+      advice: "Use Pomodoro: 25 min study + 5 min break.",
+      type: "info",
+    },
+    {
+      icon: "Coffee",
+      title: "Energy Management",
+      advice: "Do hard subjects in morning, light work later.",
+      type: "warning",
+    },
+  ];
+
+  const weeklyGoal = adviceData?.weeklyGoal || {
+    target: "85%",
+    metric: "Target Attendance",
+    message: "Focus on attending all lectures this week. Attendance directly boosts performance.",
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
@@ -27,26 +86,15 @@ export default function Advice({ user }) {
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <AdviceCard
-          icon={<Brain className="w-8 h-8 text-indigo-600" />}
-          title="Cognitive Optimization"
-          advice="Sleep 7–8 hours daily to improve memory and retention."
-          type="success"
-        />
-
-        <AdviceCard
-          icon={<BookOpen className="w-8 h-8 text-emerald-600" />}
-          title="Study Technique"
-          advice="Use Pomodoro: 25 min study + 5 min break."
-          type="info"
-        />
-
-        <AdviceCard
-          icon={<Coffee className="w-8 h-8 text-amber-600" />}
-          title="Energy Management"
-          advice="Do hard subjects in morning, light work later."
-          type="warning"
-        />
+        {cards.map((card, index) => (
+          <AdviceCard
+            key={index}
+            icon={ICON_MAP[card.icon] || <Lightbulb className="w-8 h-8 text-indigo-600" />}
+            title={card.title}
+            advice={card.advice}
+            type={card.type}
+          />
+        ))}
       </div>
 
       <div className="mt-16 bg-slate-900 rounded-3xl p-12 text-white relative overflow-hidden">
@@ -55,15 +103,15 @@ export default function Advice({ user }) {
 
           <div className="flex flex-col md:flex-row gap-8 items-center">
             <div className="bg-indigo-600 p-8 rounded-3xl text-center min-w-[200px]">
-              <div className="text-5xl font-black mb-2">85%</div>
+              <div className="text-5xl font-black mb-2">{weeklyGoal.target}</div>
               <div className="text-indigo-200 text-sm font-bold uppercase">
-                Target Attendance
+                {weeklyGoal.metric}
               </div>
             </div>
 
             <div className="space-y-4">
               <p className="text-slate-300 text-lg">
-                Focus on attending all lectures this week. Attendance directly boosts performance.
+                {weeklyGoal.message}
               </p>
 
               <div className="flex gap-3 flex-wrap">

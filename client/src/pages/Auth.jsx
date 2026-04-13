@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, User as UserIcon, ArrowRight, Loader2 } from "lucide-react";
+import { Mail, Lock, User as UserIcon, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+
 
 export default function Auth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -15,25 +17,39 @@ export default function Auth({ onLogin }) {
     name: "",
   });
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccessMsg("");
 
+    
     const endpoint = isLogin ? "/api/auth/login" : "/api/auth/signup";
+    const payload = isLogin 
+      ? { email: formData.email, password: formData.password }
+      : formData;
     
     try {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        onLogin(data.user);
-        navigate("/");
+        if (isLogin) {
+          // Login success — store user and JWT token
+          onLogin(data.user, data.jwtToken);
+          navigate("/");
+        } else {
+          // Signup success — switch to login mode
+          setSuccessMsg("Account created successfully! Please sign in.");
+          setIsLogin(true);
+          setFormData({ ...formData, password: "" });
+        }
       } else {
         setError(data.message || "Something went wrong");
       }
@@ -43,6 +59,8 @@ export default function Auth({ onLogin }) {
       setLoading(false);
     }
   };
+
+
 
   return (
     <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4">
@@ -64,6 +82,13 @@ export default function Auth({ onLogin }) {
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl">
               {error}
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 text-emerald-600 text-sm rounded-xl flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              {successMsg}
             </div>
           )}
 
@@ -133,7 +158,11 @@ export default function Auth({ onLogin }) {
 
           <div className="mt-8 text-center">
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError("");
+                setSuccessMsg("");
+              }}
               className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
             >
               {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}

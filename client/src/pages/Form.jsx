@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -14,6 +14,7 @@ import {
 export default function Form({ user }) {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
     studyHours: 5,
@@ -23,33 +24,52 @@ export default function Form({ user }) {
     sleepHours: 7,
   });
 
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
 
     setLoading(true);
+    setError("");
 
     try {
-      // Save data
-      await fetch("/api/student/data", {
+      const token = localStorage.getItem("token");
+
+      // Save data to database
+      const saveRes = await fetch("/api/student/data", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: token }),
+        },
         body: JSON.stringify({
           ...formData,
-          userId: user?.id, // safer
+          userId: user._id,
         }),
       });
 
+      if (!saveRes.ok) {
+        const saveData = await saveRes.json();
+        throw new Error(saveData.message || "Failed to save data");
+      }
+
       // Get prediction
-      const res = await fetch("/api/predict", {
+      const predRes = await fetch("/api/predict", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: token }),
+        },
         body: JSON.stringify(formData),
       });
 
-      const prediction = await res.json();
+      if (!predRes.ok) {
+        throw new Error("Prediction failed");
+      }
+
+      const prediction = await predRes.json();
 
       sessionStorage.setItem(
         "lastPrediction",
@@ -59,6 +79,7 @@ export default function Form({ user }) {
       navigate("/prediction");
     } catch (err) {
       console.error("Error:", err);
+      setError(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -80,6 +101,18 @@ export default function Form({ user }) {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-3xl shadow-xl border p-8 md:p-12"
       >
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl">
+            {error}
+          </div>
+        )}
+
+        {!user && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-100 text-amber-700 text-sm rounded-xl">
+            Please <button onClick={() => navigate("/auth")} className="underline font-bold">sign in</button> first to save your data.
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-8">
           
           <InputGroup
@@ -141,8 +174,8 @@ export default function Form({ user }) {
           <div className="md:col-span-2 pt-6">
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-5 bg-indigo-600 text-white rounded-xl font-bold flex justify-center gap-3"
+              disabled={loading || !user}
+              className="w-full py-5 bg-indigo-600 text-white rounded-xl font-bold flex justify-center gap-3 hover:bg-indigo-700 transition-all disabled:opacity-60"
             >
               {loading ? (
                 <Loader2 className="w-6 h-6 animate-spin" />

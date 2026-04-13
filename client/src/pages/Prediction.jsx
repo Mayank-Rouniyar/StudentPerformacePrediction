@@ -1,13 +1,53 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Target, Zap, ArrowLeft, RefreshCw, Star } from "lucide-react";
+import { Trophy, Target, Zap, ArrowLeft, RefreshCw, Star, Loader2 } from "lucide-react";
 
 export default function Prediction({ user }) {
   const navigate = useNavigate();
   const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem("lastPrediction");
+      if (saved) {
+        setResult(JSON.parse(saved));
+      }
+    } catch (err) {
+      console.error("Failed to load prediction:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!result) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <div className="inline-flex p-6 bg-slate-100 rounded-full mb-6">
+          <Trophy className="w-12 h-12 text-slate-400" />
+        </div>
+        <h2 className="text-3xl font-bold text-slate-900 mb-4">No Prediction Found</h2>
+        <p className="text-slate-600 mb-8 max-w-md mx-auto">
+          You haven't generated a prediction yet. Start by entering your academic data.
+        </p>
+        <button 
+          onClick={() => navigate("/form")}
+          className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100"
+        >
+          Go to Data Entry
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
@@ -55,11 +95,11 @@ export default function Prediction({ user }) {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-1">
                 <div className="text-slate-400 text-xs font-bold uppercase">Study Hours Impact</div>
-                <div className="text-xl font-medium">{result.factors.studyImpact}</div>
+                <div className="text-xl font-medium">{result.factors?.studyImpact || "N/A"}</div>
               </div>
               <div className="space-y-1">
                 <div className="text-slate-400 text-xs font-bold uppercase">Attendance Impact</div>
-                <div className="text-xl font-medium">{result.factors.attendanceImpact}</div>
+                <div className="text-xl font-medium">{result.factors?.attendanceImpact || "N/A"}</div>
               </div>
             </div>
           </div>
