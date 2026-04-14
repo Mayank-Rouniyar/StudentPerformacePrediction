@@ -17,10 +17,11 @@ import {
   Home,
 } from "lucide-react";
 
+// Components
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Form from "./pages/Form";
-import Prediction from "./pages/Prediction";
+import Prediction from "./pages/Prediction"; // This will now show your CGPA
 import Analysis from "./pages/Analysis";
 import Advice from "./pages/Advice";
 
@@ -34,7 +35,6 @@ const Navbar = ({ user, onLogout }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <div className="bg-indigo-600 p-1.5 rounded-lg">
               <GraduationCap className="w-6 h-6 text-white" />
@@ -44,26 +44,21 @@ const Navbar = ({ user, onLogout }) => {
             </span>
           </Link>
 
-          {/* Links (VISIBLE ALWAYS) */}
           <div className="hidden md:flex items-center gap-8">
             <NavLink to="/" active={location.pathname === "/"} icon={<Home className="w-4 h-4" />}>
               Home
             </NavLink>
-
             <NavLink to="/form" active={location.pathname === "/form"} icon={<ClipboardList className="w-4 h-4" />}>
-              Data Entry
+              Predict CGPA
             </NavLink>
-
             <NavLink to="/analysis" active={location.pathname === "/analysis"} icon={<BarChart3 className="w-4 h-4" />}>
               Analysis
             </NavLink>
-
             <NavLink to="/advice" active={location.pathname === "/advice"} icon={<Lightbulb className="w-4 h-4" />}>
               Advice
             </NavLink>
           </div>
 
-          {/* Right Section */}
           <div className="flex items-center gap-4">
             {user ? (
               <>
@@ -75,7 +70,7 @@ const Navbar = ({ user, onLogout }) => {
                 </div>
                 <button
                   onClick={onLogout}
-                  className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                  className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <LogOut className="w-5 h-5" />
                 </button>
@@ -83,7 +78,7 @@ const Navbar = ({ user, onLogout }) => {
             ) : (
               <Link
                 to="/auth"
-                className="px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium"
+                className="px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
               >
                 Sign In
               </Link>
@@ -95,12 +90,10 @@ const Navbar = ({ user, onLogout }) => {
   );
 };
 
-/* ================= NAV LINK ================= */
-
 const NavLink = ({ to, children, active, icon }) => (
   <Link
     to={to}
-    className={`flex items-center gap-2 text-sm font-medium ${
+    className={`flex items-center gap-2 text-sm font-medium transition-colors ${
       active ? "text-indigo-600" : "text-slate-600 hover:text-indigo-600"
     }`}
   >
@@ -109,7 +102,7 @@ const NavLink = ({ to, children, active, icon }) => (
   </Link>
 );
 
-/* ================= APP ================= */
+/* ================= APP CONTENT ================= */
 
 const AppContent = () => {
   const location = useLocation();
@@ -117,8 +110,7 @@ const AppContent = () => {
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem("user");
-      if (!saved || saved === "undefined") return null;
-      return JSON.parse(saved);
+      return saved ? JSON.parse(saved) : null;
     } catch {
       return null;
     }
@@ -132,41 +124,41 @@ const AppContent = () => {
   const handleLogout = () => {
     setUser(null);
     localStorage.removeItem("user");
+    sessionStorage.removeItem("lastPrediction"); // Clean prediction on logout
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
       <Navbar user={user} onLogout={handleLogout} />
 
-      <main className="pt-16">
+      <main className="pt-16 flex-grow">
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Landing user={user} />} />
             <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
             <Route path="/form" element={<Form user={user} />} />
+            
+            {/* The Prediction route that will display the result from your Python model */}
             <Route path="/prediction" element={<Prediction user={user} />} />
+            
             <Route path="/analysis" element={<Analysis user={user} />} />
             <Route path="/advice" element={<Advice user={user} />} />
           </Routes>
         </AnimatePresence>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 py-10 mt-20 text-center">
+      <footer className="bg-white border-t border-slate-200 py-10 text-center">
         <div className="flex justify-center items-center gap-2 mb-2">
           <GraduationCap className="w-5 h-5 text-indigo-600" />
           <span className="font-bold">EduPredict AI</span>
         </div>
         <p className="text-sm text-slate-500">
-          Data-driven student insights.
+          Data-driven student insights powered by Ensemble Learning.
         </p>
       </footer>
     </div>
   );
 };
-
-/* ================= ROOT ================= */
 
 export default function App() {
   return (
