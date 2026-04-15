@@ -1,6 +1,5 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import {
   Lightbulb,
   CheckCircle2,
@@ -10,76 +9,104 @@ import {
   Coffee,
 } from "lucide-react";
 
-export default function Advice({ user }) {
-  const navigate = useNavigate();
+export default function Advice() {
 
- 
+  // Static Student Data (simulate ML output)
+  const student = {
+    predictedCGPA: 7.2,
+    studyHours: 2,
+    attendance: 68,
+    netflixHours: 4,
+  };
+
+  const benchmark = {
+    studyHours: 4,
+    attendance: 85,
+    netflixHours: 2,
+  };
+
+  // Simulated ML-based advice (based on gaps)
+  const adviceData = [
+    {
+      icon: <BookOpen className="w-8 h-8 text-indigo-600" />,
+      title: "Study Hours Optimization",
+      advice: `Current: ${student.studyHours} hrs | Recommended: ${benchmark.studyHours}+ hrs`,
+      type: "warning",
+    },
+    {
+      icon: <Brain className="w-8 h-8 text-emerald-600" />,
+      title: "Attendance Improvement",
+      advice: `Current: ${student.attendance}% | Target: ${benchmark.attendance}%+`,
+      type: "warning",
+    },
+    {
+      icon: <Coffee className="w-8 h-8 text-amber-600" />,
+      title: "Entertainment Balance",
+      advice: `Netflix usage: ${student.netflixHours} hrs | Suggested: < ${benchmark.netflixHours} hrs`,
+      type: "info",
+    },
+  ];
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
+
+      {/* Header */}
       <div className="mb-12 text-center">
         <h2 className="text-4xl font-bold text-slate-900 mb-2">
-          Personalized Advice
+          Performance Recommendations
         </h2>
         <p className="text-slate-600">
-          Actionable insights based on your performance profile.
+          Model-generated insights based on comparative analysis.
         </p>
       </div>
 
+      {/* Advice Cards */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <AdviceCard
-          icon={<Brain className="w-8 h-8 text-indigo-600" />}
-          title="Cognitive Optimization"
-          advice="Sleep 7–8 hours daily to improve memory and retention."
-          type="success"
-        />
-
-        <AdviceCard
-          icon={<BookOpen className="w-8 h-8 text-emerald-600" />}
-          title="Study Technique"
-          advice="Use Pomodoro: 25 min study + 5 min break."
-          type="info"
-        />
-
-        <AdviceCard
-          icon={<Coffee className="w-8 h-8 text-amber-600" />}
-          title="Energy Management"
-          advice="Do hard subjects in morning, light work later."
-          type="warning"
-        />
+        {adviceData.map((item, index) => (
+          <AdviceCard key={index} {...item} />
+        ))}
       </div>
 
+      {/* Prediction Impact Section */}
       <div className="mt-16 bg-slate-900 rounded-3xl p-12 text-white relative overflow-hidden">
         <div className="relative z-10">
-          <h3 className="text-3xl font-bold mb-6">Weekly Focus Goal</h3>
+          <h3 className="text-3xl font-bold mb-6">
+            Predicted Outcome Adjustment
+          </h3>
 
           <div className="flex flex-col md:flex-row gap-8 items-center">
+
             <div className="bg-indigo-600 p-8 rounded-3xl text-center min-w-[200px]">
-              <div className="text-5xl font-black mb-2">85%</div>
+              <div className="text-5xl font-black mb-2">8.0</div>
               <div className="text-indigo-200 text-sm font-bold uppercase">
-                Target Attendance
+                Potential CGPA
               </div>
             </div>
 
             <div className="space-y-4">
               <p className="text-slate-300 text-lg">
-                Focus on attending all lectures this week. Attendance directly boosts performance.
+                Based on adjustments in key behavioral parameters, the predicted performance shows an upward trend.
               </p>
 
               <div className="flex gap-3 flex-wrap">
                 <span className="px-4 py-2 bg-slate-800 rounded-full text-sm border border-slate-700">
-                  #Consistency
+                  #StudyHours
                 </span>
                 <span className="px-4 py-2 bg-slate-800 rounded-full text-sm border border-slate-700">
-                  #Growth
+                  #Attendance
+                </span>
+                <span className="px-4 py-2 bg-slate-800 rounded-full text-sm border border-slate-700">
+                  #BehavioralData
                 </span>
               </div>
             </div>
+
           </div>
         </div>
 
         <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl -mr-48 -mt-48" />
       </div>
+
     </div>
   );
 }
