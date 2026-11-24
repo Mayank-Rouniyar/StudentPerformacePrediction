@@ -43,10 +43,10 @@ export default function Landing({ user }) {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
-                  onClick={() => navigate("/analysis")}
+                  onClick={() => navigate("/rank")}
                   className="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
                 >
-                  View Rank Analysis
+                  View Class Rankings
                 </button>
               </div>
             </motion.div>

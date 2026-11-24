@@ -5,6 +5,8 @@ import {
   Route,
   Link,
   useLocation,
+  useNavigate,
+  Navigate,
 } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -15,6 +17,8 @@ import {
   ClipboardList,
   Lightbulb,
   Home,
+  Trophy,
+  Lock,
 } from "lucide-react";
 
 // Components
@@ -24,6 +28,7 @@ import Form from "./pages/Form";
 import Prediction from "./pages/Prediction"; // This will now show your CGPA
 import Analysis from "./pages/Analysis";
 import Advice from "./pages/Advice";
+import Rank from "./pages/Rank";
 
 /* ================= NAVBAR ================= */
 
@@ -44,19 +49,62 @@ const Navbar = ({ user, onLogout }) => {
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-6">
             <NavLink to="/" active={location.pathname === "/"} icon={<Home className="w-4 h-4" />}>
               Home
             </NavLink>
-            <NavLink to="/form" active={location.pathname === "/form"} icon={<ClipboardList className="w-4 h-4" />}>
-              Predict CGPA
-            </NavLink>
-            <NavLink to="/analysis" active={location.pathname === "/analysis"} icon={<BarChart3 className="w-4 h-4" />}>
-              Analysis
-            </NavLink>
-            <NavLink to="/advice" active={location.pathname === "/advice"} icon={<Lightbulb className="w-4 h-4" />}>
-              Advice
-            </NavLink>
+
+            {user ? (
+              <>
+                <NavLink to="/form" active={location.pathname === "/form"} icon={<ClipboardList className="w-4 h-4" />}>
+                  Predict CGPA
+                </NavLink>
+                <NavLink to="/analysis" active={location.pathname === "/analysis"} icon={<BarChart3 className="w-4 h-4" />}>
+                  Analysis
+                </NavLink>
+                <NavLink to="/rank" active={location.pathname === "/rank"} icon={<Trophy className="w-4 h-4" />}>
+                  Rankings
+                </NavLink>
+                <NavLink to="/advice" active={location.pathname === "/advice"} icon={<Lightbulb className="w-4 h-4" />}>
+                  Advice
+                </NavLink>
+              </>
+            ) : (
+              <div className="flex items-center gap-6 text-slate-400 text-xs font-semibold">
+                <Link
+                  to="/auth"
+                  className="flex items-center gap-1.5 hover:text-indigo-600 transition group"
+                  title="Sign in required"
+                >
+                  <Lock className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 transition-colors" />
+                  Predict CGPA
+                </Link>
+                <Link
+                  to="/auth"
+                  className="flex items-center gap-1.5 hover:text-indigo-600 transition group"
+                  title="Sign in required"
+                >
+                  <Lock className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 transition-colors" />
+                  Analysis
+                </Link>
+                <Link
+                  to="/auth"
+                  className="flex items-center gap-1.5 hover:text-indigo-600 transition group"
+                  title="Sign in required"
+                >
+                  <Lock className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 transition-colors" />
+                  Rankings
+                </Link>
+                <Link
+                  to="/auth"
+                  className="flex items-center gap-1.5 hover:text-indigo-600 transition group"
+                  title="Sign in required"
+                >
+                  <Lock className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 transition-colors" />
+                  Advice
+                </Link>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-4">
@@ -102,10 +150,20 @@ const NavLink = ({ to, children, active, icon }) => (
   </Link>
 );
 
+/* ================= PROTECTED ROUTE ================= */
+
+const ProtectedRoute = ({ user, children }) => {
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+  return children;
+};
+
 /* ================= APP CONTENT ================= */
 
 const AppContent = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [user, setUser] = useState(() => {
     try {
@@ -125,6 +183,7 @@ const AppContent = () => {
     setUser(null);
     localStorage.removeItem("user");
     sessionStorage.removeItem("lastPrediction"); // Clean prediction on logout
+    navigate("/"); // Redirect user to Home page immediately on logout
   };
 
   return (
@@ -136,13 +195,51 @@ const AppContent = () => {
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={<Landing user={user} />} />
             <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
-            <Route path="/form" element={<Form user={user} />} />
             
-            {/* The Prediction route that will display the result from your Python model */}
-            <Route path="/prediction" element={<Prediction user={user} />} />
-            
-            <Route path="/analysis" element={<Analysis user={user} />} />
-            <Route path="/advice" element={<Advice user={user} />} />
+            {/* Protected Routes: Only accessible when logged in */}
+            <Route
+              path="/form"
+              element={
+                <ProtectedRoute user={user}>
+                  <Form user={user} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/prediction"
+              element={
+                <ProtectedRoute user={user}>
+                  <Prediction user={user} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analysis"
+              element={
+                <ProtectedRoute user={user}>
+                  <Analysis user={user} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/rank"
+              element={
+                <ProtectedRoute user={user}>
+                  <Rank user={user} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/advice"
+              element={
+                <ProtectedRoute user={user}>
+                  <Advice user={user} />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Fallback to Home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AnimatePresence>
       </main>

@@ -21,6 +21,11 @@ const predictionSchema = new mongoose.Schema(
       max: 10,
     },
 
+    parameters: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+
     predictionDate: {
       type: Date,
       default: Date.now,

@@ -136,6 +136,7 @@ export default function Form({ user }) {
             student: user._id,
             classId: user.classId,
             predictedCGPA: Number(predictedCGPA),
+            parameters: formData,
           }),
         }
       );
@@ -157,6 +158,7 @@ export default function Form({ user }) {
         JSON.stringify({
           cgpa: predictedCGPA,
           percentage: predictionData.prediction,
+          parameters: formData,
         })
       );
 
